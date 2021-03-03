@@ -31,7 +31,8 @@ class CfgMods
 
 		dependencies[] =
 		{
-			"World"
+			"World",
+			"Mission"
 		};
 
 		class defs
@@ -42,6 +43,15 @@ class CfgMods
 				files[] =
 				{
 					"inkihh\GameLogger\scripts\4_World"
+				};
+			};
+
+			class missionScriptModule
+			{
+				value="";
+				files[] =
+				{
+					"inkihh\GameLogger\scripts\5_Mission"
 				};
 			};
 		};
