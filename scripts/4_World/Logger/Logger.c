@@ -1,13 +1,13 @@
-class GameLogger : JMModuleBase
+class Logger : JMModuleBase
 {
-    protected static ref GameLogger s_Instance;
+    protected static ref Logger s_Instance;
 
-    static const string m_ProfilePath = "$profile:GameLogger";
+    static const string m_ProfilePath = "$profile:Logger";
     static const string m_UploadPath = m_ProfilePath + "/upload";
     static const string m_InProgressPath = m_ProfilePath + "/inprogress";
     static const string m_DonePath = m_ProfilePath + "/done";
 
-    void GameLogger()
+    void Logger()
     {
         s_Instance = this;
 
@@ -20,9 +20,9 @@ class GameLogger : JMModuleBase
         GetGame().GetCallQueue(CALL_CATEGORY_SYSTEM).CallLater(this.Uploader, 1000, false);
     }
 
-    static GameLogger GetInstance()
+    static Logger GetInstance()
     {
-        if (NULL == s_Instance) s_Instance = new GameLogger;
+        if (NULL == s_Instance) s_Instance = new Logger;
         return s_Instance;
     }
 
@@ -31,7 +31,7 @@ class GameLogger : JMModuleBase
         return false;
     }
 
-    void Log(string message)
+    string GetTimestamp()
     {
         int year = 0;
         int month = 0;
@@ -40,27 +40,54 @@ class GameLogger : JMModuleBase
         int minute = 0;
         int second = 0;
 
-        GetHourMinuteSecond(hour, minute, second);
-        GetYearMonthDay(year, month, day);
-       
-        Print("[GameLogger][" + year.ToStringLen(2) + "-" + month.ToStringLen(2) + "-" + day.ToStringLen(2) + " " + hour.ToStringLen(2) + ":" + minute.ToStringLen(2) + ":" + second.ToStringLen(2) + "] " + message);
+        GetHourMinuteSecondUTC(hour, minute, second);
+        GetYearMonthDayUTC(year, month, day);
+
+        return year.ToStringLen(4) + "-" + month.ToStringLen(2) + "-" + day.ToStringLen(2) + "T" + hour.ToStringLen(2) + ":" + minute.ToStringLen(2) + ":" + second.ToStringLen(2) + "Z";
     }
 
-    void Ingest(string modname, string message)
+    string GetTimestampForFilename()
     {
-        Print(message);
+        string timestamp = this.GetTimestamp();
+        timestamp.Replace(":", "");
 
-        switch (modname)
+        return timestamp;
+    }
+
+    void Log(string message)
+    {
+        Print("[Logger][" + this.GetTimestamp() + "] " + message);
+    }
+
+    void Ingest(string source, string payload)
+    {
+        Log("Ingest:  " + source + ", " + payload);
+        JsonObject json = new JsonObject;
+
+        json.AddString("source", source);
+        json.AddString("payload", payload);
+        json.AddString("createdAt", this.GetTimestamp());
+
+        this.AddToUploadQueue(json);
+    }
+
+    void AddToUploadQueue(JsonObject json)
+    {
+        Log("AddToUploadQueue: " + json);
+
+        string fileDate = this.GetTimestampForFilename();
+        string fileName = m_UploadPath + "/upload_" + fileDate + "_" + Math.RandomInt(0, 1000000) + ".json";
+
+        FileHandle file = OpenFile(fileName, FileMode.WRITE);
+
+        if (file)
         {
-            case "Trader":
-            {
-                if (message.Substring(0, 18) == "[TRADER] Player: (")
-                {
-                    s_Instance.Trader(message.Substring(9, message.Length() - 9));
-                }
-
-                break;
-            }
+            FPrint(file, json.GetJson());
+            CloseFile(file);
+        }
+        else
+        {
+            Log("Could not create file " + fileName);
         }
     }
 
@@ -83,7 +110,7 @@ class GameLogger : JMModuleBase
 
         if(fileName)
         {
-            fileList.Insert(m_InProgressPath + "/" + fileName);
+            fileList.Insert(fileName);
             CopyFile(m_UploadPath + "/" + fileName, m_InProgressPath + "/" + fileName);
             DeleteFile(m_UploadPath + "/" + fileName);
         }
@@ -94,7 +121,7 @@ class GameLogger : JMModuleBase
         {
             if (fileName)
             {
-                fileList.Insert(m_InProgressPath + "/" + fileName);
+                fileList.Insert(fileName);
                 CopyFile(m_UploadPath + "/" + fileName, m_InProgressPath + "/" + fileName);
                 DeleteFile(m_UploadPath + "/" + fileName);
             }
@@ -110,17 +137,24 @@ class GameLogger : JMModuleBase
             return;
         }
 
-        string payload;
-        string readLine;
+        this.Log("The Uploader has found " + fileList.Count() + " events to log");
+
+        string payload = "";
+        string readLine = "";
 
         foreach(string payloadFile: fileList)
         {
-            fileHandle = OpenFile(payloadFile, FileMode.READ);
+            this.Log("Processing file " + payloadFile);
+
+            fileHandle = OpenFile(m_InProgressPath + "/" + payloadFile, FileMode.READ);
             while (FGets(fileHandle, readLine) > 0)
             {
                 payload = payload + readLine + ",";
             }
             CloseFile(fileHandle);
+
+            CopyFile(m_InProgressPath + "/" + payloadFile, m_DonePath + "/" + payloadFile);
+            DeleteFile(m_InProgressPath + "/" + payloadFile);
         }
 
         payload = payload.Substring(0, payload.Length() - 1);
@@ -129,47 +163,9 @@ class GameLogger : JMModuleBase
         Log("Doing call with " + payload);
 
         RestCallback cbxcb = new RestCallback;
-        RestContext ctx = GetRestApi().GetRestContext("https://webhook.site/5275dbb6-93ab-47e7-90e2-2a5d587ddf08");
+        RestContext ctx = GetRestApi().GetRestContext("https://webhook.site/2ea04ec7-5c21-4fb5-8aee-bee957f83984");
         ctx.POST(cbxcb, "", payload);
 
         GetGame().GetCallQueue(CALL_CATEGORY_SYSTEM).CallLater(this.Uploader, 60000, false);
     }
-
-    void AddToUploadQueue(JsonObject json)
-    {
-        int year = 0;
-        int month = 0;
-        int day = 0;
-        int hour = 0;
-        int minute = 0;
-        int second = 0;
-
-        GetHourMinuteSecond(hour, minute, second);
-        GetYearMonthDay(year, month, day);
-
-        string fileDate = year.ToStringLen(2) + month.ToStringLen(2) + day.ToStringLen(2) + hour.ToStringLen(2) + minute.ToStringLen(2) + second.ToStringLen(2);
-        FileHandle file = OpenFile(m_UploadPath + "/upload_" + fileDate + "_" + Math.RandomInt(0, 1000000) + ".json", FileMode.WRITE);
-
-        if(file)
-        {
-            FPrint(file, json.GetJson());
-            CloseFile(file);
-        }
-    }
-
-    // INGEST
-
-    void Trader(string message)
-    {
-        this.Log("Trader sale: " + message);
-
-        JsonObject json = new JsonObject;
-
-        json.AddString("mod", "trader");
-        json.AddString("action", "buy");
-        json.AddString("message", message);
-
-        this.AddToUploadQueue(json);
-    }
 }
-

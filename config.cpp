@@ -1,6 +1,6 @@
 class CfgPatches
 {
-	class GameLogger
+	class Logger
 	{
 		units[] = {};
 		weapons[] = {};
@@ -14,14 +14,14 @@ class CfgPatches
 
 class CfgMods
 {
-	class GameLogger
+	class Logger
 	{
-		dir = "inkihh\GameLogger";
+		dir = "inkihh\Logger";
 		picture = "";
 		action = "";
 		hideName = 0;
 		hidePicture = 0;
-		name = "GameLogger";
+		name = "Logger";
 		credits = "";
 		author = "inkihh";
 		authorID = "0";
@@ -42,7 +42,7 @@ class CfgMods
 				value="";
 				files[] =
 				{
-					"inkihh\GameLogger\scripts\4_World"
+					"inkihh\Logger\scripts\4_World"
 				};
 			};
 
@@ -51,7 +51,7 @@ class CfgMods
 				value="";
 				files[] =
 				{
-					"inkihh\GameLogger\scripts\5_Mission"
+					"inkihh\Logger\scripts\5_Mission"
 				};
 			};
 		};

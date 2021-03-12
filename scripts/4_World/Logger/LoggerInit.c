@@ -1,4 +1,4 @@
-class GameLoggerInit : ItemBase
+class LoggerInit : ItemBase
 {
     override void EEInit()
     {
@@ -6,7 +6,7 @@ class GameLoggerInit : ItemBase
 
         if (IsMissionHost())
         {
-            GameLogger gl = GameLogger.GetInstance();
+            Logger l = Logger.GetInstance();
         }
     }
 }
