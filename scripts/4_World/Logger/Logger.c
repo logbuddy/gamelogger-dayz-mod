@@ -3,6 +3,15 @@ class Logger : JMModuleBase
     protected static ref Logger s_Instance;
 
     static const string m_ProfilePath = "$profile:Logger";
+    static const string m_ConfigFile = m_ProfilePath + "/LoggerConfig.json"
+
+    static ref LoggerSettings m_Settings;
+
+    static const string m_UserId;
+    static const string m_ApiKeyId;
+    static const string m_ServerId;
+
+    static const string m_CreatePath = m_ProfilePath + "/create";
     static const string m_UploadPath = m_ProfilePath + "/upload";
     static const string m_InProgressPath = m_ProfilePath + "/inprogress";
     static const string m_DonePath = m_ProfilePath + "/done";
@@ -12,12 +21,28 @@ class Logger : JMModuleBase
         s_Instance = this;
 
         MakeDirectory(m_ProfilePath);
+        MakeDirectory(m_CreatePath);
         MakeDirectory(m_UploadPath);
         MakeDirectory(m_InProgressPath);
         MakeDirectory(m_DonePath);
 
-        GetGame().GetCallQueue(CALL_CATEGORY_SYSTEM).CallLater(this.LogReader, 1000, false);
-        GetGame().GetCallQueue(CALL_CATEGORY_SYSTEM).CallLater(this.Uploader, 1000, false);
+        m_Settings = new LoggerSettings(m_ConfigFile);
+
+        Print("[Logger] Settings.userId: " + m_Settings.GetUserId());
+        Print("[Logger] Settings.serverId: " + m_Settings.GetServerId());
+        Print("[Logger] Settings.apiKeyId: " + m_Settings.GetApiKeyId());
+        Print("[Logger] Settings.IsLoaded(): " + m_Settings.IsLoaded());
+
+        if (!m_Settings.IsLoaded())
+        {
+            Print("[Logger] Settings incomplete. Please check $profile:Logger/LoggerConfig.json");
+            Print("[Logger] If it didn't exist at all, an empty one was created right now.");
+        }
+        else
+        {
+            GetGame().GetCallQueue(CALL_CATEGORY_SYSTEM).CallLater(this.LogReader, 1000, false);
+            GetGame().GetCallQueue(CALL_CATEGORY_SYSTEM).CallLater(this.Uploader, 1000, false);
+        }
     }
 
     static Logger GetInstance()
@@ -76,18 +101,22 @@ class Logger : JMModuleBase
         Log("AddToUploadQueue: " + json);
 
         string fileDate = this.GetTimestampForFilename();
-        string fileName = m_UploadPath + "/upload_" + fileDate + "_" + Math.RandomInt(0, 1000000) + ".json";
+        string fileName = "upload_" + fileDate + "_" + Math.RandomInt(0, 1000000) + ".json";
+        string filePath = m_CreatePath + "/" + fileName;
 
-        FileHandle file = OpenFile(fileName, FileMode.WRITE);
+        FileHandle file = OpenFile(filePath, FileMode.WRITE);
 
         if (file)
         {
             FPrint(file, json.GetJson());
             CloseFile(file);
+
+            CopyFile(m_CreatePath + "/" + fileName, m_UploadPath + "/" + fileName);
+            DeleteFile(m_CreatePath + "/" + fileName);
         }
         else
         {
-            Log("Could not create file " + fileName);
+            Log("Could not create file " + filePath);
         }
     }
 
@@ -160,11 +189,23 @@ class Logger : JMModuleBase
         payload = payload.Substring(0, payload.Length() - 1);
         payload = "[" + payload  + "]";
 
-        Log("Doing call with " + payload);
+        JsonObject json = new JsonObject;
+
+        json.AddString("userId", m_Settings.GetUserId());
+        json.AddString("serverId", m_Settings.GetServerId());
+        json.AddString("apiKeyId", m_Settings.GetApiKeyId());
+
+        json.AddString("events", "REPLACE");
+
+        string jsonstring = json.GetJson();
+
+        jsonstring.Replace("\"REPLACE\"", payload);
+
+        Log("Doing call with " + jsonstring);
 
         RestCallback cbxcb = new RestCallback;
-        RestContext ctx = GetRestApi().GetRestContext("https://webhook.site/2ea04ec7-5c21-4fb5-8aee-bee957f83984");
-        ctx.POST(cbxcb, "", payload);
+        RestContext ctx = GetRestApi().GetRestContext("https://rs213s9yml.execute-api.eu-central-1.amazonaws.com/server-events");
+        ctx.POST(cbxcb, "", jsonstring);
 
         GetGame().GetCallQueue(CALL_CATEGORY_SYSTEM).CallLater(this.Uploader, 60000, false);
     }
