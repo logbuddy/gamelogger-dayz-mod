@@ -4,6 +4,7 @@ modded class MissionServer
     {
         super.OnEvent(eventTypeId, params);
 
+        /*
         switch (eventTypeId)
         {
             case ScriptLogEventTypeID:
@@ -14,5 +15,6 @@ modded class MissionServer
                 l.Ingest("ScriptLog", log_params.param1);
             }
         }
+        */
     }
 }

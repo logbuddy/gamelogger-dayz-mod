@@ -52,7 +52,6 @@ class Logger : JMModuleBase
 
     static Logger GetInstance()
     {
-        if (NULL == s_Instance) s_Instance = new Logger;
         return s_Instance;
     }
 
@@ -102,6 +101,14 @@ class Logger : JMModuleBase
     
     bool Filter(string source, string payload)
     {
+        switch(source)
+        {
+            case "AdminLog":
+            {
+                if(payload == "#####") return true;
+                break;
+            }
+        }
         return false;
     }
 
@@ -225,6 +232,11 @@ class Logger : JMModuleBase
                 payload = "";
                 numObjects = 0;
             }
+        }
+
+        if(numObjects)
+        {
+            this.SendData(payload);
         }
 
         GetGame().GetCallQueue(CALL_CATEGORY_SYSTEM).CallLater(this.Uploader, 60000, false);

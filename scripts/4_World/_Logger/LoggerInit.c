@@ -6,7 +6,7 @@ class LoggerInit : ItemBase
 
         if (IsMissionHost())
         {
-            Logger l = Logger.GetInstance();
+            
         }
     }
 }
