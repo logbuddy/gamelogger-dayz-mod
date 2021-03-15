@@ -31,12 +31,21 @@ class CfgMods
 
 		dependencies[] =
 		{
+			"Game",
 			"World",
 			"Mission"
 		};
 
 		class defs
 		{
+			class gameScriptModule
+			{
+				value="";
+				files[] =
+				{
+					"inkihh\Logger\scripts\3_Game"
+				};
+			};
 			class worldScriptModule
 			{
 				value="";

@@ -3,35 +3,40 @@ class Logger : JMModuleBase
     protected static ref Logger s_Instance;
 
     static const string m_ProfilePath = "$profile:Logger";
-    static const string m_ConfigFile = m_ProfilePath + "/LoggerConfig.json"
+    static const string m_ConfigFile = m_ProfilePath + "/LoggerConfig.json";
 
+    static const string m_LogPath = m_ProfilePath + "/log";
+    static const string m_LogFile = m_LogPath + "/main.txt";
+    static const string m_NotSentLogFile = m_LogPath + "/notsent.txt";
+
+    static const string m_QueuePath = m_ProfilePath + "/queue";
+    static const string m_CreatePath = m_QueuePath + "/create";
+    static const string m_UploadPath = m_QueuePath + "/upload";
+    static const string m_InProgressPath = m_QueuePath + "/inprogress";
+    static const string m_DonePath = m_QueuePath + "/done";
+    
     static ref LoggerSettings m_Settings;
 
     static const string m_UserId;
     static const string m_ApiKeyId;
     static const string m_ServerId;
 
-    static const string m_CreatePath = m_ProfilePath + "/create";
-    static const string m_UploadPath = m_ProfilePath + "/upload";
-    static const string m_InProgressPath = m_ProfilePath + "/inprogress";
-    static const string m_DonePath = m_ProfilePath + "/done";
 
     void Logger()
     {
         s_Instance = this;
 
         MakeDirectory(m_ProfilePath);
+
+        MakeDirectory(m_LogPath);
+        MakeDirectory(m_QueuePath);
+
         MakeDirectory(m_CreatePath);
         MakeDirectory(m_UploadPath);
         MakeDirectory(m_InProgressPath);
         MakeDirectory(m_DonePath);
 
         m_Settings = new LoggerSettings(m_ConfigFile);
-
-        Print("[Logger] Settings.userId: " + m_Settings.GetUserId());
-        Print("[Logger] Settings.serverId: " + m_Settings.GetServerId());
-        Print("[Logger] Settings.apiKeyId: " + m_Settings.GetApiKeyId());
-        Print("[Logger] Settings.IsLoaded(): " + m_Settings.IsLoaded());
 
         if (!m_Settings.IsLoaded())
         {
@@ -56,6 +61,22 @@ class Logger : JMModuleBase
         return false;
     }
 
+    void Log(string message)
+    {
+        FileHandle file = OpenFile(m_LogFile, FileMode.APPEND);
+
+        if (file)
+        {
+            string timestamp = this.GetTimestamp();
+            FPrintln(file, "[" + timestamp + "] " + message);
+            CloseFile(file);
+        }
+        else
+        {
+            Print("[LOGGER] Could not create logfile " + m_LogFile);
+        }
+    }
+
     string GetTimestamp()
     {
         int year = 0;
@@ -78,15 +99,21 @@ class Logger : JMModuleBase
 
         return timestamp;
     }
-
-    void Log(string message)
+    
+    bool Filter(string source, string payload)
     {
-        Print("[Logger][" + this.GetTimestamp() + "] " + message);
+        return false;
     }
 
     void Ingest(string source, string payload)
     {
-        Log("Ingest:  " + source + ", " + payload);
+        if (this.Filter(source, payload))
+        {
+            this.Log("NOTSENT [" + source + "] " + payload);
+            return;
+        }
+
+        //this.Log("Ingest:  " + source + ", " + payload);
         JsonObject json = new JsonObject;
 
         json.AddString("source", source);
@@ -98,7 +125,7 @@ class Logger : JMModuleBase
 
     void AddToUploadQueue(JsonObject json)
     {
-        Log("AddToUploadQueue: " + json);
+        //this.Log("AddToUploadQueue: " + json);
 
         string fileDate = this.GetTimestampForFilename();
         string fileName = "upload_" + fileDate + "_" + Math.RandomInt(0, 1000000) + ".json";
@@ -116,7 +143,7 @@ class Logger : JMModuleBase
         }
         else
         {
-            Log("Could not create file " + filePath);
+            this.Log("Could not create file " + filePath);
         }
     }
 
@@ -158,8 +185,6 @@ class Logger : JMModuleBase
 
         CloseFindFile(findFileHandle);
 
-        Log("fileList.Count(): " + fileList.Count());
-
         if (fileList.Count() == 0) 
         {
             GetGame().GetCallQueue(CALL_CATEGORY_SYSTEM).CallLater(this.Uploader, 60000, false);
@@ -168,13 +193,20 @@ class Logger : JMModuleBase
 
         this.Log("The Uploader has found " + fileList.Count() + " events to log");
 
-        string payload = "";
-        string readLine = "";
+        string payload;
+        string payloadFile;
+        string readLine;
 
-        foreach(string payloadFile: fileList)
+        int objectsPerRequest = 8;
+        int numObjects = 0;
+
+        while (fileList.Count())
         {
-            this.Log("Processing file " + payloadFile);
+            payloadFile = fileList.Get(0);
+            numObjects++;
 
+            //this.Log("Processing file " + payloadFile);
+            
             fileHandle = OpenFile(m_InProgressPath + "/" + payloadFile, FileMode.READ);
             while (FGets(fileHandle, readLine) > 0)
             {
@@ -184,10 +216,25 @@ class Logger : JMModuleBase
 
             CopyFile(m_InProgressPath + "/" + payloadFile, m_DonePath + "/" + payloadFile);
             DeleteFile(m_InProgressPath + "/" + payloadFile);
+
+            fileList.RemoveOrdered(0);
+
+            if (numObjects >= objectsPerRequest)
+            {
+                this.SendData(payload);
+                payload = "";
+                numObjects = 0;
+            }
         }
 
+        GetGame().GetCallQueue(CALL_CATEGORY_SYSTEM).CallLater(this.Uploader, 60000, false);
+    }
+
+    void SendData(string payload)
+    {
         payload = payload.Substring(0, payload.Length() - 1);
         payload = "[" + payload  + "]";
+        //this.Log("SendData payload: " + payload);
 
         JsonObject json = new JsonObject;
 
@@ -198,15 +245,16 @@ class Logger : JMModuleBase
         json.AddString("events", "REPLACE");
 
         string jsonstring = json.GetJson();
+        //this.Log("SendData jsonstring: " + jsonstring);
 
         jsonstring.Replace("\"REPLACE\"", payload);
 
-        Log("Doing call with " + jsonstring);
+        //this.Log("Doing call with " + jsonstring);
 
-        RestCallback cbxcb = new RestCallback;
+        LoggerRestCallback cbxcb = new LoggerRestCallback;
+        cbxcb.SetLogger(this);
+        
         RestContext ctx = GetRestApi().GetRestContext("https://rs213s9yml.execute-api.eu-central-1.amazonaws.com/server-events");
         ctx.POST(cbxcb, "", jsonstring);
-
-        GetGame().GetCallQueue(CALL_CATEGORY_SYSTEM).CallLater(this.Uploader, 60000, false);
     }
 }
