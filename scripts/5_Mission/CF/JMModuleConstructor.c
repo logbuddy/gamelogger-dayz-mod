@@ -1,3 +1,4 @@
+/*
 modded class JMModuleConstructor
 {
     override void RegisterModules(out array<typename> modules)
@@ -6,3 +7,4 @@ modded class JMModuleConstructor
         modules.Insert(Logger);
     }
 }
+*/

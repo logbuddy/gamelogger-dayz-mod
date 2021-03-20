@@ -1,3 +1,4 @@
+/*
 class LoggerInit : ItemBase
 {
     override void EEInit()
@@ -10,3 +11,4 @@ class LoggerInit : ItemBase
         }
     }
 }
+*/
