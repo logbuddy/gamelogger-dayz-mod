@@ -39,14 +39,22 @@ class LoggerSendContainer
         json = json + "\"apiKeyId\": \"" + apiKeyId + "\",";
 
         json = json + "\"events\": [";
+        string payload;
 
         foreach(int i, LoggerEvent loggerEvent: events)
         {
             if(i > 0) json = json + ",";
+
+            payload = loggerEvent.payload.GetJson();
+
+            int backslash = 92;
+            int quote = 34;
+            payload.Replace("\"", backslash.AsciiToString() + quote.AsciiToString());
+
             json = json + "{";
                 json = json + "\"createdAt\": \"" + loggerEvent.createdAt + "\",";
                 json = json + "\"source\": \"" + loggerEvent.source + "\",";
-                json = json + "\"payload\": " + loggerEvent.payload.GetJson();
+                json = json + "\"payload\": \"" + payload + "\"";
             json = json + "}";
         }
         json = json + "]";
