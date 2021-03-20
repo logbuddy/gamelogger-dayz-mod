@@ -41,14 +41,14 @@ class LoggerSendContainer
         json = json + "\"events\": [";
         string payload;
 
+        int backslash = 92;
+        int quote = 34;
+
         foreach(int i, LoggerEvent loggerEvent: events)
         {
             if(i > 0) json = json + ",";
 
             payload = loggerEvent.payload.GetJson();
-
-            int backslash = 92;
-            int quote = 34;
             payload.Replace("\"", backslash.AsciiToString() + quote.AsciiToString());
 
             json = json + "{";
