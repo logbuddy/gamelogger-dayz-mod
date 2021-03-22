@@ -14,6 +14,9 @@ modded class PlayerBase
         LoggerPayload loggerPayload = new LoggerPayload();
         loggerPayload.AddPlayer(this, "victim");
 
+        loggerPayload.AddActionItem("victim", "victim");
+        loggerPayload.AddActionItem("position", player.GetPosition().ToString());
+
         string cause = "(unknown)";
         string tool = "(unknown)";
 
@@ -29,6 +32,7 @@ modded class PlayerBase
 
                 PlayerBase killerPlayer = PlayerBase.Cast(EntityAI.Cast(killer).GetHierarchyParent());
                 loggerPayload.AddPlayer(killerPlayer, "killer");
+                loggerPayload.AddActionItem("killer", "killer");
 
                 tool = killer.GetDisplayName();
 

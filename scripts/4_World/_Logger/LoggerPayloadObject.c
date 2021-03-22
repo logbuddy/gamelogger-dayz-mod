@@ -22,7 +22,7 @@ class LoggerPayloadObject
         foreach (string Key, string Value: m_LoggerPayloadObjectItems)
         {
             if (i > 0) json = json + ",";
-            json = json + "\"" + Key + "\": \"" + LoggerHelper.EscapeString(Value) + "\"";
+            json = json + "\"" + Key + "\": \"" + Value + "\"";
             i++;
         }
         json = json + "}";

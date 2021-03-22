@@ -29,6 +29,7 @@ class Logger
         }
         else
         {
+            Print("[Logger] Ready.");
             GetGame().GetCallQueue(CALL_CATEGORY_SYSTEM).CallLater(this.Uploader, 1000, false);
         }
     }
@@ -44,17 +45,17 @@ class Logger
         return m_Settings;
     }
     
-    void Ingest(string source, LoggerPayload loggerPayload)
+    void Ingest(string Source, LoggerPayload Payload)
     {
-        m_Log.Log("Ingest:  " + source + ", " + loggerPayload.AsJsonString());
+        m_Log.Log("Ingest:  " + Source + ", " + Payload.AsJsonString());
 
-        LoggerEvent loggerEvent = new LoggerEvent();
-        loggerEvent.createdAt = LoggerHelper.GetTimestamp();
-        loggerEvent.source = source;
-        loggerEvent.payload = loggerPayload;
+        LoggerEvent Event = new LoggerEvent();
+        Event.createdAt = LoggerHelper.GetTimestamp();
+        Event.source = Source;
+        Event.payload = Payload;
 
-        m_Log.Log("Inserting " + loggerEvent + " into main events array during ingest");
-        m_Events.Insert(loggerEvent);
+        m_Log.Log("Inserting " + Event + " into main events array during ingest");
+        m_Events.Insert(Event);
     }
 
     void Uploader()
@@ -92,16 +93,16 @@ class Logger
         GetGame().GetCallQueue(CALL_CATEGORY_SYSTEM).CallLater(this.Uploader, 1000, false);
     }
 
-    void SendData(LoggerSendContainer loggerSendContainer)
+    void SendData(LoggerSendContainer SendContainer)
     {
-        string jsonString = loggerSendContainer.AsJsonString();
+        string JsonString = SendContainer.AsJsonString();
 
-        m_Log.Log("SendData jsonString: " + jsonString);
+        m_Log.Log("SendData JsonString: " + JsonString);
 
-        LoggerRestCallback cbxcb = new LoggerRestCallback;
-        cbxcb.SetLogger(this);
+        LoggerRestCallback Cbxcb = new LoggerRestCallback;
+        Cbxcb.SetLogger(this);
         
-        RestContext ctx = GetRestApi().GetRestContext("https://rs213s9yml.execute-api.eu-central-1.amazonaws.com/server-events");
-        ctx.POST(cbxcb, "", jsonString);
+        RestContext Ctx = GetRestApi().GetRestContext("https://rs213s9yml.execute-api.eu-central-1.amazonaws.com/server-events");
+        Ctx.POST(Cbxcb, "", JsonString);
     }
 }

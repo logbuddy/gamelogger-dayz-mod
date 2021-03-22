@@ -46,12 +46,10 @@ class LoggerSendContainer
         {
             if(i > 0) json = json + ",";
 
-            payload = LoggerHelper.EscapeString(Event.payload.AsJsonString());
-
             json = json + "{";
                 json = json + "\"createdAt\": \"" + Event.createdAt + "\",";
                 json = json + "\"source\": \"" + Event.source + "\",";
-                json = json + "\"payload\": \"" + payload + "\"";
+                json = json + "\"payload\": "+ Event.payload.AsJsonString();
             json = json + "}";
         }
         json = json + "]";

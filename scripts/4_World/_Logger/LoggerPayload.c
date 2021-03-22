@@ -24,13 +24,6 @@ class LoggerPayload
 
         PayloadObject.AddItem("id", player.GetIdentity().GetPlainId());
         PayloadObject.AddItem("name", player.GetIdentity().GetName());
-        PayloadObject.AddItem("position", player.GetPosition().ToString());
-        
-        JsonObject stats = new JsonObject();
-        stats.AddString("water", player.GetStatWater().Get().ToString());
-        stats.AddString("energy", player.GetStatEnergy().Get().ToString());
-        stats.AddString("blood", player.GetBleedingManagerServer().GetBleedingSourcesCount().ToString());
-        PayloadObject.AddItem("stats", stats.GetJson());
 
         m_LoggerPayloadObjects.Insert(PayloadObject);
     }
@@ -60,7 +53,7 @@ class LoggerPayload
         foreach (string Key, string Value: m_LoggerActionItems)
         {
             if (j > 0) json = json + ",";
-            json = json + "\"" + Key + "\": " + "\"" + LoggerHelper.EscapeString(Value) +"\"";
+            json = json + "\"" + Key + "\": " + "\"" + Value +"\"";
             j++;
         }
         json = json + "}";
