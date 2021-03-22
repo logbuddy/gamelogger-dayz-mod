@@ -1,0 +1,5 @@
+enum LogType
+{
+    MAIN,
+    NOTSENT
+};
