@@ -15,7 +15,7 @@ modded class PlayerBase
         loggerPayload.AddPlayer(this, "victim");
 
         loggerPayload.AddActionItem("victim", "victim");
-        loggerPayload.AddActionItem("position", player.GetPosition().ToString());
+        loggerPayload.AddActionItem("position", GetPosition().ToString());
 
         string cause = "(unknown)";
         string tool = "(unknown)";
