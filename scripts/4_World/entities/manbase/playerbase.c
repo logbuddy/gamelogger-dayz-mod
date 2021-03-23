@@ -7,6 +7,31 @@ modded class PlayerBase
         if(!m_Logger) m_Logger = Logger.GetInstance();
     }
 
+    void LoggerOnConnect(string Mode)
+    {
+        Log("Starting PlayerBase.LoggerOnConnect");
+
+        LoggerPayload loggerPayload = new LoggerPayload();
+        loggerPayload.AddPlayer(this, "joiner");
+
+        loggerPayload.AddActionItem("joiner", "joiner");
+        loggerPayload.AddActionItem("position", GetPosition().ToString());
+
+        m_Logger.Ingest("Player" + Mode, loggerPayload);
+    }
+
+    override void OnConnect()
+    {
+        GetGame().GetCallQueue(CALL_CATEGORY_SYSTEM).CallLater(this.LoggerOnConnect, 1000, false, "Connect");
+        super.OnConnect();
+    }
+
+    override void OnReconnect()
+    {
+        GetGame().GetCallQueue(CALL_CATEGORY_SYSTEM).CallLater(this.LoggerOnConnect, 1000, false, "Reconnect");
+        super.OnReconnect();
+    }
+
     override void EEKilled(Object killer)
     {
         Log("Starting PlayerBase.EEKilled");
