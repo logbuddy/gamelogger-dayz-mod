@@ -9,7 +9,9 @@ class Logger
     ref LoggerSettings m_Settings;
     ref LoggerLogger m_Log;
 
-    static const int EVENTS_PER_SECOND = 5;
+    const int LOGGER_POLL_FREQUENCY = 60000;
+
+    static const int EVENTS_PER_CALL = 5;
 
     bool m_UploaderRunning = false;
 
@@ -30,7 +32,7 @@ class Logger
         else
         {
             Print("[Logger] Ready.");
-            GetGame().GetCallQueue(CALL_CATEGORY_SYSTEM).CallLater(this.Uploader, 1000, false);
+            GetGame().GetCallQueue(CALL_CATEGORY_SYSTEM).CallLater(this.Uploader, LOGGER_POLL_FREQUENCY, false);
         }
     }
 
@@ -44,7 +46,41 @@ class Logger
     {
         return m_Settings;
     }
-    
+
+    void InsertStatsEvent()
+    {
+        LoggerPayload Payload = new LoggerPayload();
+
+        Payload.AddActionItem("eventBacklog", m_Events.Count().ToString());
+        Payload.AddActionItem("fps", GetGame().GetFps().ToString());
+
+        array<Man> Men;
+        GetGame().GetPlayers(Men);
+
+        PlayerBase player;
+        LoggerPayloadObject PayloadObject;
+
+        if (Men)
+        {
+            foreach (int i, Man localMan: Men)
+            {
+                if (Class.CastTo(player, localMan))
+                {
+                    PayloadObject = new LoggerPayloadObject("player", "player" + i.ToStringLen(4));
+
+                    PayloadObject.AddItem("id", player.GetIdentity().GetPlainId());
+                    PayloadObject.AddItem("name", player.GetIdentity().GetName());
+                    PayloadObject.AddItem("position", player.GetPosition().ToString());
+
+                    Payload.m_LoggerPayloadObjects.Insert(PayloadObject);
+                    Payload.AddActionItem("player", "player" + i.ToStringLen(4));
+                }
+            }
+        }
+
+        Ingest("Stats", Payload);
+    }
+
     void Ingest(string Source, LoggerPayload Payload)
     {
         m_Log.Log("Ingest:  " + Source + ", " + Payload.AsJsonString());
@@ -66,7 +102,9 @@ class Logger
         m_Log.Log("Got " + m_Events.Count() + " events delivered to Uploader");
 
         LoggerSendContainer loggerSendContainer = new LoggerSendContainer();
+        InsertStatsEvent();
         LoggerEvent loggerEvent;
+
         int numObjects = 0;
 
         for (int i = 0; i < m_Events.Count(); i++)
@@ -77,8 +115,8 @@ class Logger
             m_Events.RemoveOrdered(0);
 
             numObjects++;
-
-            if (numObjects >= Logger.EVENTS_PER_SECOND)
+            
+            if (numObjects >= Logger.EVENTS_PER_CALL)
             {
                 break;
             }
@@ -90,7 +128,7 @@ class Logger
         }
 
         m_UploaderRunning = false;
-        GetGame().GetCallQueue(CALL_CATEGORY_SYSTEM).CallLater(this.Uploader, 1000, false);
+        GetGame().GetCallQueue(CALL_CATEGORY_SYSTEM).CallLater(this.Uploader, LOGGER_POLL_FREQUENCY, false);
     }
 
     void SendData(LoggerSendContainer SendContainer)
