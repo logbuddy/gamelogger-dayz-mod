@@ -47,14 +47,16 @@ class Logger
         return m_Settings;
     }
 
-    void InsertStatsEvent()
+    LoggerEvent StatsEvent()
     {
         LoggerPayload Payload = new LoggerPayload();
 
-        Payload.AddActionItem("eventBacklog", m_Events.Count().ToString());
-        Payload.AddActionItem("fps", GetGame().GetFps().ToString());
+        float fps = 1000 / ftime;
 
-        array<Man> Men;
+        Payload.AddActionItem("eventBacklog", m_Events.Count().ToString());
+        Payload.AddActionItem("fps", fps.ToString());
+
+        array<Man> Men = new array<Man>;
         GetGame().GetPlayers(Men);
 
         PlayerBase player;
@@ -78,7 +80,12 @@ class Logger
             }
         }
 
-        Ingest("Stats", Payload);
+        LoggerEvent Event = new LoggerEvent();
+        Event.createdAt = LoggerHelper.GetTimestamp();
+        Event.source = "Stats";
+        Event.payload = Payload;
+
+        return Event;
     }
 
     void Ingest(string Source, LoggerPayload Payload)
@@ -102,7 +109,6 @@ class Logger
         m_Log.Log("Got " + m_Events.Count() + " events delivered to Uploader");
 
         LoggerSendContainer loggerSendContainer = new LoggerSendContainer();
-        InsertStatsEvent();
         LoggerEvent loggerEvent;
 
         int numObjects = 0;
@@ -124,6 +130,7 @@ class Logger
 
         if (numObjects)
         {
+            loggerSendContainer.InsertEvent(StatsEvent());
             this.SendData(loggerSendContainer);
         }
 
