@@ -1,39 +1,39 @@
-class LoggerPayload
+class LogbuddyPayload
 {
-    Logger m_Logger;
+    Logbuddy m_Logbuddy;
 
-    ref array<ref LoggerPayloadObject> m_LoggerPayloadObjects;
-    ref map<string, string> m_LoggerActionItems;
+    ref array<ref LogbuddyPayloadObject> m_LogbuddyPayloadObjects;
+    ref map<string, string> m_LogbuddyActionItems;
 
-    void LoggerPayload()
+    void LogbuddyPayload()
     {
-        m_Logger = Logger.GetInstance();
+        m_Logbuddy = Logbuddy.GetInstance();
 
-        m_LoggerPayloadObjects = new array<ref LoggerPayloadObject>;
-        m_LoggerActionItems = new map<string, string>();
+        m_LogbuddyPayloadObjects = new array<ref LogbuddyPayloadObject>;
+        m_LogbuddyActionItems = new map<string, string>();
     }
 
     void AddActionItem(string Key, string Value)
     {
-        m_LoggerActionItems[Key] = Value;
+        m_LogbuddyActionItems[Key] = Value;
     }
 
     void AddPlayer(PlayerBase player, string objref)
     {
-        LoggerPayloadObject PayloadObject = new LoggerPayloadObject("player", objref);
+        LogbuddyPayloadObject PayloadObject = new LogbuddyPayloadObject("player", objref);
 
         PayloadObject.AddItem("id", player.GetIdentity().GetPlainId());
         PayloadObject.AddItem("name", player.GetIdentity().GetName());
 
-        m_LoggerPayloadObjects.Insert(PayloadObject);
+        m_LogbuddyPayloadObjects.Insert(PayloadObject);
     }
 
     void AddCar(CarScript Vehicle, string objref)
     {
-        LoggerPayloadObject PayloadObject = new LoggerPayloadObject("vehicle", objref);
+        LogbuddyPayloadObject PayloadObject = new LogbuddyPayloadObject("vehicle", objref);
 
         PayloadObject.AddItem("name", Vehicle.ClassName());
-        m_LoggerPayloadObjects.Insert(PayloadObject);
+        m_LogbuddyPayloadObjects.Insert(PayloadObject);
     }
 
     string AsJsonString()
@@ -41,7 +41,7 @@ class LoggerPayload
         string json = "{";
 
         json = json + "\"objects\": [";
-        foreach (int i, LoggerPayloadObject PayloadObject: m_LoggerPayloadObjects)
+        foreach (int i, LogbuddyPayloadObject PayloadObject: m_LogbuddyPayloadObjects)
         {
             if (i > 0) json = json + ",";
             json = json + PayloadObject.AsJsonString();
@@ -50,7 +50,7 @@ class LoggerPayload
 
         json = json + "\"action\": {";
         int j = 0;
-        foreach (string Key, string Value: m_LoggerActionItems)
+        foreach (string Key, string Value: m_LogbuddyActionItems)
         {
             if (j > 0) json = json + ",";
             json = json + "\"" + Key + "\": " + "\"" + Value +"\"";

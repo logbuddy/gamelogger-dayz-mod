@@ -1,1 +1,1 @@
-# gamelogger-dayz-mod
+# logbuddy-dayz-mod

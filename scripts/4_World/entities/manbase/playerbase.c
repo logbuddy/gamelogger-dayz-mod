@@ -1,34 +1,34 @@
 modded class PlayerBase
 {
-    ref Logger m_Logger;
+    ref Logbuddy m_Logbuddy;
 
     void PlayerBase()
     {
-        if(!m_Logger) m_Logger = Logger.GetInstance();
+        if(!m_Logbuddy) m_Logbuddy = Logbuddy.GetInstance();
     }
 
-    void LoggerOnConnect(string Mode)
+    void LogbuddyOnConnect(string Mode)
     {
-        Log("Starting PlayerBase.LoggerOnConnect");
+        Log("Starting PlayerBase.LogbuddyOnConnect");
 
-        LoggerPayload loggerPayload = new LoggerPayload();
-        loggerPayload.AddPlayer(this, "joiner");
+        LogbuddyPayload Payload = new LogbuddyPayload();
+        Payload.AddPlayer(this, "joiner");
 
-        loggerPayload.AddActionItem("joiner", "joiner");
-        loggerPayload.AddActionItem("position", GetPosition().ToString());
+        Payload.AddActionItem("joiner", "joiner");
+        Payload.AddActionItem("position", GetPosition().ToString());
 
-        m_Logger.Ingest("Player" + Mode, loggerPayload);
+        m_Logbuddy.Ingest("Player" + Mode, Payload);
     }
 
     override void OnConnect()
     {
-        GetGame().GetCallQueue(CALL_CATEGORY_SYSTEM).CallLater(this.LoggerOnConnect, 1000, false, "Connect");
+        GetGame().GetCallQueue(CALL_CATEGORY_SYSTEM).CallLater(this.LogbuddyOnConnect, 1000, false, "Connect");
         super.OnConnect();
     }
 
     override void OnReconnect()
     {
-        GetGame().GetCallQueue(CALL_CATEGORY_SYSTEM).CallLater(this.LoggerOnConnect, 1000, false, "Reconnect");
+        GetGame().GetCallQueue(CALL_CATEGORY_SYSTEM).CallLater(this.LogbuddyOnConnect, 1000, false, "Reconnect");
         super.OnReconnect();
     }
 
@@ -36,11 +36,11 @@ modded class PlayerBase
     {
         Log("Starting PlayerBase.EEKilled");
 
-        LoggerPayload loggerPayload = new LoggerPayload();
-        loggerPayload.AddPlayer(this, "victim");
+        LogbuddyPayload Payload = new LogbuddyPayload();
+        Payload.AddPlayer(this, "victim");
 
-        loggerPayload.AddActionItem("victim", "victim");
-        loggerPayload.AddActionItem("position", GetPosition().ToString());
+        Payload.AddActionItem("victim", "victim");
+        Payload.AddActionItem("position", GetPosition().ToString());
 
         string cause = "(unknown)";
         string tool = "(unknown)";
@@ -56,15 +56,15 @@ modded class PlayerBase
                 cause = "PLAYER";
 
                 PlayerBase killerPlayer = PlayerBase.Cast(EntityAI.Cast(killer).GetHierarchyParent());
-                loggerPayload.AddPlayer(killerPlayer, "killer");
-                loggerPayload.AddActionItem("killer", "killer");
+                Payload.AddPlayer(killerPlayer, "killer");
+                Payload.AddActionItem("killer", "killer");
 
                 tool = killer.GetDisplayName();
 
                 if(!killer.IsMeleeWeapon())
                 {
                     float distance = vector.Distance(GetPosition(), killerPlayer.GetPosition());
-                    loggerPayload.AddActionItem("distance", distance.ToString());
+                    Payload.AddActionItem("distance", distance.ToString());
                 }
             }
             else
@@ -74,10 +74,10 @@ modded class PlayerBase
             }
         }
 
-        loggerPayload.AddActionItem("cause", cause);
-        loggerPayload.AddActionItem("tool", tool);
+        Payload.AddActionItem("cause", cause);
+        Payload.AddActionItem("tool", tool);
 
-        m_Logger.Ingest("PlayerKilled", loggerPayload);
+        m_Logbuddy.Ingest("PlayerKilled", Payload);
 
         super.EEKilled(killer);
     }

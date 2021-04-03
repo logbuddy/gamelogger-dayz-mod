@@ -1,4 +1,4 @@
-class LoggerSettings
+class LogbuddySettings
 {
 	private string userId = "";
 	private string serverId = "";
@@ -7,7 +7,7 @@ class LoggerSettings
 	[NonSerialized()]
 	private bool m_IsLoaded;
 
-	void LoggerSettings(string settingsFilePath)
+	void LogbuddySettings(string settingsFilePath)
 	{
 		this.m_IsLoaded = this.Load(settingsFilePath) && this.userId && this.serverId && this.apiKeyId;
 	}
@@ -16,11 +16,11 @@ class LoggerSettings
 	{
 		if (FileExist(settingsFilePath))
 		{
-			JsonFileLoader<LoggerSettings>.JsonLoadFile(settingsFilePath, this);
+			JsonFileLoader<LogbuddySettings>.JsonLoadFile(settingsFilePath, this);
 			return true;
 		}
 
-		JsonFileLoader<LoggerSettings>.JsonSaveFile(settingsFilePath, this);
+		JsonFileLoader<LogbuddySettings>.JsonSaveFile(settingsFilePath, this);
 		return false;
 	}
 

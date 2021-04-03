@@ -1,37 +1,37 @@
-class LoggerSendContainer
+class LogbuddySendContainer
 {
     string m_UserId;
     string m_ServerId;
     string m_ApiKeyId
 
-    ref array<ref LoggerEvent> m_Events;
+    ref array<ref LogbuddyEvent> m_Events;
 
-    Logger m_Logger;
+    Logbuddy m_Logbuddy;
 
-    void LoggerSendContainer()
+    void LogbuddySendContainer()
     {
-        Logger m_Logger = Logger.GetInstance();
-        LoggerSettings Settings = m_Logger.GetSettings();
+        Logbuddy m_Logbuddy = Logbuddy.GetInstance();
+        LogbuddySettings Settings = m_Logbuddy.GetSettings();
 
         m_UserId = Settings.GetUserId();
         m_ServerId = Settings.GetServerId();
         m_ApiKeyId = Settings.GetApiKeyId();
 
-        m_Events = new array<ref LoggerEvent>;
+        m_Events = new array<ref LogbuddyEvent>;
     }
 
-    void InsertEvent(LoggerEvent loggerEvent)
+    void InsertEvent(LogbuddyEvent Event)
     {
-        if(!m_Logger) m_Logger = Logger.GetInstance();
-        if(!m_Events) m_Events = new array<ref LoggerEvent>;
+        if(!m_Logbuddy) m_Logbuddy = Logbuddy.GetInstance();
+        if(!m_Events) m_Events = new array<ref LogbuddyEvent>;
 
-        m_Logger.m_Log.Log("Inserting " + loggerEvent + " into LoggerSendContainer");
-        m_Events.Insert(loggerEvent);
+        m_Logbuddy.m_Log.Log("Inserting " + Event + " into LogbuddySendContainer");
+        m_Events.Insert(Event);
     }
 
     string AsJsonString()
     {
-        m_Logger.m_Log.Log("Found " + m_Events.Count() + " event(s) to convert");
+        m_Logbuddy.m_Log.Log("Found " + m_Events.Count() + " event(s) to convert");
 
         string json = "{";
 
@@ -42,7 +42,7 @@ class LoggerSendContainer
         json = json + "\"events\": [";
         string payload;
 
-        foreach(int i, LoggerEvent Event: m_Events)
+        foreach(int i, LogbuddyEvent Event: m_Events)
         {
             if(i > 0) json = json + ",";
 

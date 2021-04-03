@@ -1,15 +1,15 @@
 modded class ActionGetInTransport : ActionBase
 {
-    Logger m_Logger;
+    Logbuddy m_Logbuddy;
 
     override void OnEndServer(ActionData action_data)
     {
-        m_Logger = Logger.GetInstance();
-        m_Logger.m_Log.Log("ActionGetInTransport");
+        m_Logbuddy = Logbuddy.GetInstance();
+        m_Logbuddy.m_Log.Log("ActionGetInTransport");
 
         PlayerBase player = PlayerBase.Cast(action_data.m_Player);
 
-        LoggerPayload Payload = new LoggerPayload();
+        LogbuddyPayload Payload = new LogbuddyPayload();
         Payload.AddPlayer(player, "driver");
 
         Payload.AddCar(CarScript.Cast(action_data.m_Target.GetObject()), "transport");
@@ -18,7 +18,7 @@ modded class ActionGetInTransport : ActionBase
         Payload.AddActionItem("vehicle", "transport");
         Payload.AddActionItem("position", player.GetPosition().ToString());
 
-        m_Logger.Ingest("ActionGetInTransport", Payload);
+        m_Logbuddy.Ingest("ActionGetInTransport", Payload);
 
         super.OnEndServer(action_data);
     }

@@ -1,4 +1,4 @@
-class LoggerHelper
+class LogbuddyHelper
 {
     static string EscapeString(string StringToEscape)
     {

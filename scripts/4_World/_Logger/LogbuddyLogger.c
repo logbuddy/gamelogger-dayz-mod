@@ -1,6 +1,6 @@
-class LoggerLogger
+class LogbuddyLogger
 {
-    static const string m_LogPath = Logger.m_ProfilePath + "/log";
+    static const string m_LogPath = Logbuddy.m_ProfilePath + "/log";
     static const string m_LogFile = m_LogPath + "/main.txt";
     static const string m_NotSentLogFile = m_LogPath + "/notsent.txt";
 
@@ -12,13 +12,13 @@ class LoggerLogger
         {
         case LogType.NOTSENT:
         {
-            logFile = LoggerLogger.m_NotSentLogFile;
+            logFile = LogbuddyLogger.m_NotSentLogFile;
             break;
         }
 
         default:
         {
-            logFile = LoggerLogger.m_LogFile;
+            logFile = LogbuddyLogger.m_LogFile;
         }
         }
 
@@ -26,13 +26,13 @@ class LoggerLogger
 
         if (file)
         {
-            string timestamp = LoggerHelper.GetTimestamp();
+            string timestamp = LogbuddyHelper.GetTimestamp();
             FPrintln(file, "[" + timestamp + "] " + message.Trim());
             CloseFile(file);
         }
         else
         {
-            Print("[LOGGER] Could not create logfile " + m_LogFile);
+            Print("[Logbuddy] Could not create logfile " + m_LogFile);
         }
     }
 }

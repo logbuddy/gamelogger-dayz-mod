@@ -1,55 +1,55 @@
-class Logger
+class Logbuddy
 {
-    protected static ref Logger s_Instance;
+    protected static ref Logbuddy s_Instance;
 
-    static const string m_ProfilePath = "$profile:Logger";
-    static const string m_ConfigFile = m_ProfilePath + "/LoggerConfig.json";
+    static const string m_ProfilePath = "$profile:Logbuddy";
+    static const string m_ConfigFile = m_ProfilePath + "/LogbuddyConfig.json";
 
-    ref array<ref LoggerEvent> m_Events;
-    ref LoggerSettings m_Settings;
-    ref LoggerLogger m_Log;
+    ref array<ref LogbuddyEvent> m_Events;
+    ref LogbuddySettings m_Settings;
+    ref LogbuddyLogger m_Log;
 
-    const int LOGGER_POLL_FREQUENCY = 60000;
+    const int LOGBUDDY_POLL_FREQUENCY = 60000;
 
     static const int EVENTS_PER_CALL = 5;
 
     bool m_UploaderRunning = false;
 
-    void Logger()
+    void Logbuddy()
     {
         MakeDirectory(m_ProfilePath);
-        MakeDirectory(LoggerLogger.m_LogPath);
+        MakeDirectory(LogbuddyLogger.m_LogPath);
 
-        m_Events = new array<ref LoggerEvent>;
-        m_Settings = new LoggerSettings(m_ConfigFile);
-        m_Log = new LoggerLogger;
+        m_Events = new array<ref LogbuddyEvent>;
+        m_Settings = new LogbuddySettings(m_ConfigFile);
+        m_Log = new LogbuddyLogger;
 
         if (!m_Settings.IsLoaded())
         {
-            Print("[Logger] Settings incomplete. Please check $profile:Logger/LoggerConfig.json");
-            Print("[Logger] If it didn't exist at all, an empty one was created right now.");
+            Print("[Logbuddy] Settings incomplete. Please check $profile:Logbuddy/LogbuddyConfig.json");
+            Print("[Logbuddy] If it didn't exist at all, an empty one was created right now.");
         }
         else
         {
-            Print("[Logger] Ready.");
-            GetGame().GetCallQueue(CALL_CATEGORY_SYSTEM).CallLater(this.Uploader, LOGGER_POLL_FREQUENCY, false);
+            Print("[Logbuddy] Ready.");
+            GetGame().GetCallQueue(CALL_CATEGORY_SYSTEM).CallLater(this.Uploader, LOGBUDDY_POLL_FREQUENCY, false);
         }
     }
 
-    static Logger GetInstance()
+    static Logbuddy GetInstance()
     {
-        if(!s_Instance) s_Instance = new Logger();
+        if(!s_Instance) s_Instance = new Logbuddy();
         return s_Instance;
     }
     
-    LoggerSettings GetSettings()
+    LogbuddySettings GetSettings()
     {
         return m_Settings;
     }
 
-    LoggerEvent StatsEvent()
+    LogbuddyEvent StatsEvent()
     {
-        LoggerPayload Payload = new LoggerPayload();
+        LogbuddyPayload Payload = new LogbuddyPayload();
 
         float fps = 1000 / ftime;
 
@@ -60,7 +60,7 @@ class Logger
         GetGame().GetPlayers(Men);
 
         PlayerBase player;
-        LoggerPayloadObject PayloadObject;
+        LogbuddyPayloadObject PayloadObject;
 
         if (Men)
         {
@@ -68,32 +68,32 @@ class Logger
             {
                 if (Class.CastTo(player, localMan))
                 {
-                    PayloadObject = new LoggerPayloadObject("player", "player" + i.ToStringLen(4));
+                    PayloadObject = new LogbuddyPayloadObject("player", "player" + i.ToStringLen(4));
 
                     PayloadObject.AddItem("id", player.GetIdentity().GetPlainId());
                     PayloadObject.AddItem("name", player.GetIdentity().GetName());
                     PayloadObject.AddItem("position", player.GetPosition().ToString());
 
-                    Payload.m_LoggerPayloadObjects.Insert(PayloadObject);
+                    Payload.m_LogbuddyPayloadObjects.Insert(PayloadObject);
                     Payload.AddActionItem("player", "player" + i.ToStringLen(4));
                 }
             }
         }
 
-        LoggerEvent Event = new LoggerEvent();
-        Event.createdAt = LoggerHelper.GetTimestamp();
+        LogbuddyEvent Event = new LogbuddyEvent();
+        Event.createdAt = LogbuddyHelper.GetTimestamp();
         Event.source = "Stats";
         Event.payload = Payload;
 
         return Event;
     }
 
-    void Ingest(string Source, LoggerPayload Payload)
+    void Ingest(string Source, LogbuddyPayload Payload)
     {
         m_Log.Log("Ingest:  " + Source + ", " + Payload.AsJsonString());
 
-        LoggerEvent Event = new LoggerEvent();
-        Event.createdAt = LoggerHelper.GetTimestamp();
+        LogbuddyEvent Event = new LogbuddyEvent();
+        Event.createdAt = LogbuddyHelper.GetTimestamp();
         Event.source = Source;
         Event.payload = Payload;
 
@@ -108,21 +108,21 @@ class Logger
 
         m_Log.Log("Got " + m_Events.Count() + " events delivered to Uploader");
 
-        LoggerSendContainer loggerSendContainer = new LoggerSendContainer();
-        LoggerEvent loggerEvent;
+        LogbuddySendContainer SendContainer = new LogbuddySendContainer();
+        LogbuddyEvent Event;
 
         int numObjects = 0;
 
         for (int i = 0; i < m_Events.Count(); i++)
         {
-            loggerEvent = m_Events.Get(0);
-            m_Log.Log("Got event " + loggerEvent + " during uploader");
-            loggerSendContainer.InsertEvent(loggerEvent);
+            Event = m_Events.Get(0);
+            m_Log.Log("Got event " + Event + " during uploader");
+            SendContainer.InsertEvent(Event);
             m_Events.RemoveOrdered(0);
 
             numObjects++;
             
-            if (numObjects >= Logger.EVENTS_PER_CALL)
+            if (numObjects >= Logbuddy.EVENTS_PER_CALL)
             {
                 break;
             }
@@ -130,21 +130,21 @@ class Logger
 
         if (numObjects)
         {            
-            this.SendData(loggerSendContainer);
+            this.SendData(SendContainer);
         }
 
         m_UploaderRunning = false;
-        GetGame().GetCallQueue(CALL_CATEGORY_SYSTEM).CallLater(this.Uploader, LOGGER_POLL_FREQUENCY, false);
+        GetGame().GetCallQueue(CALL_CATEGORY_SYSTEM).CallLater(this.Uploader, LOGBUDDY_POLL_FREQUENCY, false);
     }
 
-    void SendData(LoggerSendContainer SendContainer)
+    void SendData(LogbuddySendContainer SendContainer)
     {
         string JsonString = SendContainer.AsJsonString();
 
         m_Log.Log("SendData JsonString: " + JsonString);
 
-        LoggerRestCallback Cbxcb = new LoggerRestCallback;
-        Cbxcb.SetLogger(this);
+        LogbuddyRestCallback Cbxcb = new LogbuddyRestCallback;
+        Cbxcb.SetLogbuddy(this);
         
         RestContext Ctx = GetRestApi().GetRestContext("https://rs213s9yml.execute-api.eu-central-1.amazonaws.com/server-events");
         Ctx.POST(Cbxcb, "", JsonString);
