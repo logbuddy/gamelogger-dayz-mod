@@ -129,8 +129,7 @@ class Logger
         }
 
         if (numObjects)
-        {
-            loggerSendContainer.InsertEvent(StatsEvent());
+        {            
             this.SendData(loggerSendContainer);
         }
 
