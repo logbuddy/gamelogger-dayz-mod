@@ -19,6 +19,7 @@ class Logbuddy
     {
         MakeDirectory(m_ProfilePath);
         MakeDirectory(LogbuddyLogger.m_LogPath);
+        DeleteFile(LogbuddyLogger.m_LogFile);
 
         m_Events = new array<ref LogbuddyEvent>;
         m_Settings = new LogbuddySettings(m_ConfigFile);
