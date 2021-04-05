@@ -1,0 +1,31 @@
+{
+    "createdAt": "2021-03-21T13:10:39Z",
+    "source": "PlayerKilled",
+    "payload": {
+        "objects": [{
+                "objref": "victim",
+                "objtype": "player",
+                "data": {
+                    "id": "76561198010952471",
+                    "name": "getkilledkiese",
+                    "position": "<10097.453125, 6.012501, 1869.783691>",
+                }
+            },
+            {
+                "objref": "killer",
+                "objtype": "player",
+                "data": {
+                    "id": "76561198010952471",
+                    "name": "inkihh",
+                    "position": "<10097.453125, 6.012501, 1869.783691>",
+                }
+            }],
+        "action": {
+            "killer": "killer",
+            "victim": "victim",
+            "cause": "killedbyplayer",
+            "tool": "AK-M",
+            "distance": "436.34"
+        }
+    }
+}
