@@ -33,6 +33,8 @@ class LogbuddyPayload
         LogbuddyPayloadObject PayloadObject = new LogbuddyPayloadObject("vehicle", objref);
 
         PayloadObject.AddItem("name", Vehicle.ClassName());
+        PayloadObject.AddItem("id", Vehicle.GetID().ToString());
+
         m_PayloadObjects.Insert(PayloadObject);
     }
 

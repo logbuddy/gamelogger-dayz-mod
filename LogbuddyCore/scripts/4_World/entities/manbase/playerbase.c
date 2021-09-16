@@ -1,4 +1,4 @@
-modded class PlayerBase
+/* modded class PlayerBase
 {
     ref LogbuddyCore m_LogbuddyCore;
 
@@ -81,4 +81,4 @@ modded class PlayerBase
 
         super.EEKilled(killer);
     }
-}
+} */

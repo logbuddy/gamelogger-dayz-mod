@@ -1,8 +1,10 @@
+/*
 modded class ActionGetInTransport : ActionBase
 {
     LogbuddyCore m_LogbuddyCore;
 
-    override void OnEndServer(ActionData action_data)
+    
+     override void OnEndServer(ActionData action_data)
     {
         m_LogbuddyCore = LogbuddyCore.GetInstance();
         m_LogbuddyCore.m_Log.Log("ActionGetInTransport");
@@ -21,5 +23,6 @@ modded class ActionGetInTransport : ActionBase
         m_LogbuddyCore.Ingest("ActionGetInTransport", Payload);
 
         super.OnEndServer(action_data);
-    }
+    } 
 }
+*/
