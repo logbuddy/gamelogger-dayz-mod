@@ -1,27 +1,29 @@
 class CfgPatches
 {
-	class LogbuddyCore
+	class LogbuddyMuchCarKey
 	{
 		units[] = {};
 		weapons[] = {};
 		requiredVersion = 0.1;
 		requiredAddons[] = {
 			"DZ_Data",
-			"DZ_Scripts"
+			"DZ_Scripts",
+			"LogbuddyCore",
+			"MuchCarKey"
 		};
 	};   
 };
 
 class CfgMods
 {
-	class LogbuddyCore
+	class LogbuddyMuchCarKey
 	{
-		dir = "inkihh\Logbuddy\LogbuddyCore";
+		dir = "inkihh\Logbuddy\LogbuddyMuchCarKey";
 		picture = "";
 		action = "";
 		hideName = 0;
 		hidePicture = 0;
-		name = "LogbuddyCore";
+		name = "LogbuddyMuchCarKey";
 		credits = "";
 		author = "inkihh";
 		authorID = "0";
@@ -43,7 +45,7 @@ class CfgMods
 				value="";
 				files[] =
 				{
-					"inkihh\Logbuddy\LogbuddyCore\scripts\3_Game"
+					"inkihh\Logbuddy\LogbuddyMuchCarKey\scripts\3_Game"
 				};
 			};
 			class worldScriptModule
@@ -51,7 +53,7 @@ class CfgMods
 				value="";
 				files[] =
 				{
-					"inkihh\Logbuddy\LogbuddyCore\scripts\4_World"
+					"inkihh\Logbuddy\LogbuddyMuchCarKey\scripts\4_World"
 				};
 			};
 
@@ -60,7 +62,7 @@ class CfgMods
 				value="";
 				files[] =
 				{
-					"inkihh\Logbuddy\LogbuddyCore\scripts\5_Mission"
+					"inkihh\Logbuddy\LogbuddyMuchCarKey\scripts\5_Mission"
 				};
 			};
 		};
